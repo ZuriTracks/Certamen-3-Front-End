@@ -5,3 +5,9 @@ import './App.css';
 
 function App() {
   const [items, setItems] = useState([]);
+  const [itemToEdit,setItemToEdit] = useState(null);
+
+  useEffect(() => {
+    const storedItems = 
+    JSON.parse(localStorage.getItem('items')) ||[];
+    
