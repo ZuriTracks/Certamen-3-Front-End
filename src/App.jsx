@@ -5,6 +5,14 @@ function getInitialData() {
   return JSON.parse(localStorage.getItem('evaluaciones')) || [];
 }
 
+function getDesempeno(promedio) {
+  if (promedio >= 6.5 && promedio <= 7.0) return "Destacado";
+  if (promedio >= 5.6 && promedio < 6.5) return "Buen trabajo";
+  if (promedio >= 4.0 && promedio < 5.6) return "Con mejora";
+  if (promedio >= 1.0 && promedio < 4.0) return "Deficiente";
+  return "";
+}
+
 function App() {
   const [evaluaciones, setEvaluaciones] = useState(getInitialData());
   const [form, setForm] = useState({ nombre: '', asignatura: '', promedio: '' });
@@ -14,15 +22,26 @@ function App() {
     localStorage.setItem('evaluaciones', JSON.stringify(evaluaciones));
   }, [evaluaciones]);
 
+  // Solo permite letras y espacios en el nombre
+  const handleNombreChange = (e) => {
+    const value = e.target.value.replace(/[0-9]/g, '');
+    setForm({ ...form, nombre: value });
+  };
+
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "nombre") {
+      handleNombreChange(e);
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.nombre.trim() || !form.asignatura.trim() || form.promedio === '') return;
     const promedioNum = parseFloat(form.promedio);
-    if (isNaN(promedioNum) || promedioNum < 0 || promedioNum > 7) return;
+    if (isNaN(promedioNum) || promedioNum < 1 || promedioNum > 7) return;
 
     if (editId !== null) {
       setEvaluaciones(evaluaciones.map(ev =>
@@ -60,6 +79,10 @@ function App() {
             value={form.nombre}
             onChange={handleChange}
             placeholder="Ej: Juan Pérez"
+            autoComplete="off"
+            inputMode="text"
+            pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
+            title="Solo letras y espacios"
           />
         </div>
         <div>
@@ -73,14 +96,14 @@ function App() {
           />
         </div>
         <div>
-          <label>Promedio (0.0 - 7.0):</label>
+          <label>Promedio (1.0 - 7.0):</label>
           <input
             type="number"
             name="promedio"
             value={form.promedio}
             onChange={handleChange}
             placeholder="Ej: 5.5"
-            min="0"
+            min="1"
             max="7"
             step="0.1"
           />
@@ -112,19 +135,21 @@ function App() {
                   <strong>Alumno:</strong> {ev.nombre}<br />
                   <strong>Asignatura:</strong> {ev.asignatura}<br />
                   <strong>Promedio:</strong> {ev.promedio}
-                  {parseFloat(ev.promedio) === 7 &&
-                    <span style={{
-                      marginLeft: "1rem",
-                      background: "#00ff88",
-                      color: "#1a1a2e",
+                  <br />
+                  <span
+                    style={{
+                      marginTop: "0.5rem",
+                      display: "inline-block",
+                      background: "#2b2b45",
+                      color: "#00ff88",
                       borderRadius: "6px",
                       padding: "0.2rem 0.7rem",
-                      fontSize: "0.85rem",
-                      fontWeight: "bold",
-                      marginTop: "0.5rem",
-                      display: "inline-block"
-                    }}>Destacado</span>
-                  }
+                      fontSize: "0.95rem",
+                      fontWeight: "bold"
+                    }}
+                  >
+                    {getDesempeno(parseFloat(ev.promedio))}
+                  </span>
                 </td>
                 <td>
                   <button
